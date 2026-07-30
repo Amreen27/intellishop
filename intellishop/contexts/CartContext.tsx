@@ -1,54 +1,248 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+/**
+ * contexts/CartContext.tsx
+ *
+ * Cart state managed server-side via /api/cart (Supabase-backed).
+ * Reads/writes are gated on the signed-in Firebase user's uid.
+ *
+ * Exposes:
+ *   items          – CartItem[]  (includes local product meta)
+ *   itemCount      – total number of units across all items
+ *   subtotal       – sum of (price × quantity) for all items
+ *   loading        – true while the initial fetch is in flight
+ *   isOpen         – cart drawer visibility
+ *   openCart()
+ *   closeCart()
+ *   addToCart(productId, quantity, meta?)
+ *   updateQuantity(itemId, quantity)
+ *   removeFromCart(itemId)
+ */
 
-interface CartContextType {
-  items: CartItem[];
-  addItem: (item: CartItem) => void;
-  removeItem: (id: string) => void;
-  clearCart: () => void;
-}
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  ReactNode,
+} from "react";
+import { useAuth } from "./AuthContext";
 
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface ProductMeta {
+  name:   string;
+  price:  number;
   image?: string;
 }
 
+export interface CartItem {
+  id:         string;   // cart_items PK
+  product_id: string;
+  quantity:   number;
+  name:       string;
+  price:      number;
+  image?:     string;
+}
+
+interface CartContextType {
+  items:          CartItem[];
+  itemCount:      number;
+  subtotal:       number;
+  loading:        boolean;
+  isOpen:         boolean;
+  openCart:       () => void;
+  closeCart:      () => void;
+  addToCart:      (productId: string, quantity: number, meta?: ProductMeta) => Promise<void>;
+  updateQuantity: (itemId: string, quantity: number) => Promise<void>;
+  removeFromCart: (itemId: string) => Promise<void>;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Context
+// ─────────────────────────────────────────────────────────────────────────────
+
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Provider
+// ─────────────────────────────────────────────────────────────────────────────
+
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const { user } = useAuth();
 
-  const addItem = (item: CartItem) => {
-    setItems((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
-      if (existing) {
-        return prev.map((i) =>
-          i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i
-        );
+  const [items,   setItems]   = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [isOpen,  setIsOpen]  = useState(false);
+
+  /**
+   * Local product-meta cache: product_id → { name, price, image }
+   * Populated whenever addToCart is called with metadata.
+   * Used to enrich items coming back from the API which only carry product_id.
+   */
+  const metaCache = useRef<Record<string, ProductMeta>>({});
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+
+  /** Merge API row with local meta cache */
+  function enrichItem(row: { id: string; product_id: string; quantity: number }): CartItem {
+    const meta = metaCache.current[row.product_id];
+    return {
+      id:         row.id,
+      product_id: row.product_id,
+      quantity:   row.quantity,
+      name:       meta?.name  ?? row.product_id,
+      price:      meta?.price ?? 0,
+      image:      meta?.image,
+    };
+  }
+
+  // ── Load cart from API ───────────────────────────────────────────────────
+
+  const loadCart = useCallback(async (uid: string) => {
+    setLoading(true);
+    try {
+      const res  = await fetch(`/api/cart?user_id=${encodeURIComponent(uid)}`);
+      const json = await res.json();
+      if (json.success) {
+        setItems((json.data as { id: string; product_id: string; quantity: number }[])
+          .map(enrichItem));
       }
-      return [...prev, item];
-    });
-  };
+    } catch (e) {
+      console.error("[CartContext] loadCart error:", e);
+    } finally {
+      setLoading(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const removeItem = (id: string) => {
-    setItems((prev) => prev.filter((i) => i.id !== id));
-  };
+  // Reload whenever the signed-in user changes
+  useEffect(() => {
+    if (user) {
+      loadCart(user.uid);
+    } else {
+      setItems([]);
+    }
+  }, [user, loadCart]);
 
-  const clearCart = () => setItems([]);
+  // ── Actions ──────────────────────────────────────────────────────────────
 
-  return (
-    <CartContext.Provider value={{ items, addItem, removeItem, clearCart }}>
-      {children}
-    </CartContext.Provider>
+  const addToCart = useCallback(
+    async (productId: string, quantity: number, meta?: ProductMeta) => {
+      if (!user) throw new Error("NOT_SIGNED_IN");
+
+      // Cache meta so the item renders properly after server round-trip
+      if (meta) {
+        metaCache.current[productId] = meta;
+      }
+
+      // Optimistic: if item already exists locally, just bump quantity
+      const existing = items.find((i) => i.product_id === productId);
+      if (existing) {
+        await updateQuantity(existing.id, existing.quantity + quantity);
+        return;
+      }
+
+      const res  = await fetch("/api/cart", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ user_id: user.uid, product_id: productId, quantity }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error);
+
+      setItems((prev) => [...prev, enrichItem(json.data)]);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user, items],
   );
+
+  const updateQuantity = useCallback(
+    async (itemId: string, quantity: number) => {
+      if (!user) return;
+
+      // Optimistic update
+      setItems((prev) =>
+        prev.map((i) => (i.id === itemId ? { ...i, quantity } : i)),
+      );
+
+      const res  = await fetch("/api/cart", {
+        method:  "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ id: itemId, quantity }),
+      });
+      const json = await res.json();
+      if (!json.success) {
+        // Roll back on failure
+        await loadCart(user.uid);
+        throw new Error(json.error);
+      }
+    },
+    [user, loadCart],
+  );
+
+  const removeFromCart = useCallback(
+    async (itemId: string) => {
+      if (!user) return;
+
+      // Optimistic removal
+      setItems((prev) => prev.filter((i) => i.id !== itemId));
+
+      const res  = await fetch("/api/cart", {
+        method:  "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ id: itemId }),
+      });
+      const json = await res.json();
+      if (!json.success) {
+        await loadCart(user.uid);
+        throw new Error(json.error);
+      }
+    },
+    [user, loadCart],
+  );
+
+  // ── Computed ─────────────────────────────────────────────────────────────
+
+  const itemCount = useMemo(
+    () => items.reduce((sum, i) => sum + i.quantity, 0),
+    [items],
+  );
+
+  const subtotal = useMemo(
+    () => items.reduce((sum, i) => sum + i.price * i.quantity, 0),
+    [items],
+  );
+
+  // ── Context value ────────────────────────────────────────────────────────
+
+  const value: CartContextType = {
+    items,
+    itemCount,
+    subtotal,
+    loading,
+    isOpen,
+    openCart:       () => setIsOpen(true),
+    closeCart:      () => setIsOpen(false),
+    addToCart,
+    updateQuantity,
+    removeFromCart,
+  };
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hook
+// ─────────────────────────────────────────────────────────────────────────────
 
 export function useCart() {
   const ctx = useContext(CartContext);
-  if (!ctx) throw new Error("useCart must be used within CartProvider");
+  if (!ctx) throw new Error("useCart must be used within <CartProvider>");
   return ctx;
 }

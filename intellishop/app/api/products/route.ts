@@ -1,5 +1,14 @@
+import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ??
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+function getClient() {
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -24,6 +33,7 @@ async function fetchProducts(
   search: string,
   category: string
 ): Promise<Product[]> {
+  const supabase = getClient();
   let query = supabase
     .from("products")
     .select("id, name, description, price, image_url, category, slug");

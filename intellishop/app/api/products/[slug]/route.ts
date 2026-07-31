@@ -1,5 +1,14 @@
+import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ??
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+function getClient() {
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -27,6 +36,7 @@ export interface Product {
  * Returns null when no row matches (PGRST116 = "no rows" error from .single()).
  */
 async function getProductBySlug(slug: string): Promise<Product | null> {
+  const supabase = getClient();
   const { data, error } = await supabase
     .from("products")
     .select("*")

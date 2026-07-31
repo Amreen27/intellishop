@@ -1,5 +1,14 @@
+import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ??
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+function getClient() {
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -26,6 +35,7 @@ export interface OrderStatus {
  * can surface a 500.
  */
 async function getOrderStatus(id: string): Promise<OrderStatus | null> {
+  const supabase = getClient();
   const { data, error } = await supabase
     .from("orders")
     .select("id, status")

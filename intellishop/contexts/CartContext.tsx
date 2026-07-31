@@ -21,7 +21,6 @@
 
 import {
   createContext,
-  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -104,7 +103,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // ── Load cart from API ───────────────────────────────────────────────────
 
-  const loadCart = useCallback(async (uid: string) => {
+  async function loadCart(uid: string) {
     setLoading(true);
     try {
       const res  = await fetch(`/api/cart?user_id=${encodeURIComponent(uid)}`);
@@ -118,94 +117,85 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }
 
   // Reload whenever the signed-in user changes
   useEffect(() => {
     if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       loadCart(user.uid);
     } else {
       setItems([]);
     }
-  }, [user, loadCart]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // ── Actions ──────────────────────────────────────────────────────────────
 
-  const addToCart = useCallback(
-    async (productId: string, quantity: number, meta?: ProductMeta) => {
-      if (!user) throw new Error("NOT_SIGNED_IN");
+  async function updateQuantity(itemId: string, quantity: number) {
+    if (!user) return;
 
-      // Cache meta so the item renders properly after server round-trip
-      if (meta) {
-        metaCache.current[productId] = meta;
-      }
+    // Optimistic update
+    setItems((prev) =>
+      prev.map((i) => (i.id === itemId ? { ...i, quantity } : i)),
+    );
 
-      // Optimistic: if item already exists locally, just bump quantity
-      const existing = items.find((i) => i.product_id === productId);
-      if (existing) {
-        await updateQuantity(existing.id, existing.quantity + quantity);
-        return;
-      }
+    const res  = await fetch("/api/cart", {
+      method:  "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ id: itemId, quantity }),
+    });
+    const json = await res.json();
+    if (!json.success) {
+      // Roll back on failure
+      await loadCart(user.uid);
+      throw new Error(json.error);
+    }
+  }
 
-      const res  = await fetch("/api/cart", {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ user_id: user.uid, product_id: productId, quantity }),
-      });
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error);
+  async function addToCart(productId: string, quantity: number, meta?: ProductMeta) {
+    if (!user) throw new Error("NOT_SIGNED_IN");
 
-      setItems((prev) => [...prev, enrichItem(json.data)]);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user, items],
-  );
+    // Cache meta so the item renders properly after server round-trip
+    if (meta) {
+      metaCache.current[productId] = meta;
+    }
 
-  const updateQuantity = useCallback(
-    async (itemId: string, quantity: number) => {
-      if (!user) return;
+    // Optimistic: if item already exists locally, just bump quantity
+    const existing = items.find((i) => i.product_id === productId);
+    if (existing) {
+      await updateQuantity(existing.id, existing.quantity + quantity);
+      return;
+    }
 
-      // Optimistic update
-      setItems((prev) =>
-        prev.map((i) => (i.id === itemId ? { ...i, quantity } : i)),
-      );
+    const res  = await fetch("/api/cart", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ user_id: user.uid, product_id: productId, quantity }),
+    });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error);
 
-      const res  = await fetch("/api/cart", {
-        method:  "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ id: itemId, quantity }),
-      });
-      const json = await res.json();
-      if (!json.success) {
-        // Roll back on failure
-        await loadCart(user.uid);
-        throw new Error(json.error);
-      }
-    },
-    [user, loadCart],
-  );
+    setItems((prev) => [...prev, enrichItem(json.data)]);
+  }
 
-  const removeFromCart = useCallback(
-    async (itemId: string) => {
-      if (!user) return;
+  async function removeFromCart(itemId: string) {
+    if (!user) return;
 
-      // Optimistic removal
-      setItems((prev) => prev.filter((i) => i.id !== itemId));
+    // Optimistic removal
+    setItems((prev) => prev.filter((i) => i.id !== itemId));
 
-      const res  = await fetch("/api/cart", {
-        method:  "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ id: itemId }),
-      });
-      const json = await res.json();
-      if (!json.success) {
-        await loadCart(user.uid);
-        throw new Error(json.error);
-      }
-    },
-    [user, loadCart],
-  );
+    const res  = await fetch("/api/cart", {
+      method:  "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ id: itemId }),
+    });
+    const json = await res.json();
+    if (!json.success) {
+      await loadCart(user.uid);
+      throw new Error(json.error);
+    }
+  }
 
   // ── Computed ─────────────────────────────────────────────────────────────
 

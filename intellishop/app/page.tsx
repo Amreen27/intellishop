@@ -1,105 +1,141 @@
-import Image from "next/image";
-import { Palette } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Hero from "@/components/Hero";
+import ProductCard from "@/components/ProductCard";
+import Footer from "@/components/Footer";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+
+const FEATURED_PRODUCTS = [
+  {
+    slug: "wireless-noise-cancelling-headphones",
+    name: "Wireless Noise-Cancelling Headphones",
+    price: 7999,
+    image: "https://picsum.photos/seed/headphones/400/400",
+    rating: 5,
+    reviewCount: 214,
+    badge: "Best Seller",
+  },
+  {
+    slug: "ultra-slim-laptop-15",
+    name: "Ultra Slim Laptop 15\" — 16GB RAM, 512GB SSD",
+    price: 64999,
+    image: "https://picsum.photos/seed/laptop15/400/400",
+    rating: 4,
+    reviewCount: 98,
+  },
+  {
+    slug: "smart-fitness-watch",
+    name: "Smart Fitness Watch with Heart-Rate Monitor",
+    price: 4499,
+    image: "https://picsum.photos/seed/fitwatch/400/400",
+    rating: 4,
+    reviewCount: 531,
+    badge: "New",
+  },
+  {
+    slug: "mechanical-keyboard-rgb",
+    name: "Mechanical Gaming Keyboard — RGB Backlit",
+    price: 3299,
+    image: "https://picsum.photos/seed/keyboard/400/400",
+    rating: 5,
+    reviewCount: 173,
+  },
+  {
+    slug: "portable-bluetooth-speaker",
+    name: "Portable Bluetooth Speaker — 360° Sound",
+    price: 2199,
+    image: "https://picsum.photos/seed/speaker/400/400",
+    rating: 4,
+    reviewCount: 89,
+    badge: "Sale",
+  },
+  {
+    slug: "ergonomic-office-chair",
+    name: "Ergonomic Mesh Office Chair with Lumbar Support",
+    price: 12999,
+    image: "https://picsum.photos/seed/officechair/400/400",
+    rating: 5,
+    reviewCount: 42,
+  },
+  {
+    slug: "4k-usb-c-monitor",
+    name: '27" 4K USB-C Monitor — 144Hz Display',
+    price: 34999,
+    image: "https://picsum.photos/seed/monitor4k/400/400",
+    rating: 4,
+    reviewCount: 67,
+    badge: "New",
+  },
+  {
+    slug: "stainless-steel-water-bottle",
+    name: "Insulated Stainless Steel Water Bottle — 1L",
+    price: 899,
+    image: "https://picsum.photos/seed/waterbottle/400/400",
+    rating: 4,
+    reviewCount: 312,
+  },
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-background font-sans">
-      {/* ── Temporary design-system demo block ── */}
-      <div className="w-full max-w-md mx-auto my-8 rounded-2xl border border-border bg-surface shadow-sm p-6 flex flex-col gap-4">
-        <div className="flex items-center gap-3 mb-2">
-          <Palette className="text-accent" size={24} />
-          <span className="text-sm font-semibold text-muted uppercase tracking-widest">
-            Design System Demo
-          </span>
-        </div>
-        <div className="flex gap-3">
-          <div className="flex-1 rounded-lg bg-primary flex items-center justify-center py-4">
-            <span className="text-primary-foreground text-sm font-medium">
-              bg-primary
-            </span>
-          </div>
-          <div className="flex-1 rounded-lg bg-secondary flex items-center justify-center py-4">
-            <span className="text-secondary-foreground text-sm font-medium">
-              bg-secondary
-            </span>
-          </div>
-        </div>
-        <div className="flex gap-3">
-          <div className="flex-1 rounded-lg bg-accent flex items-center justify-center py-4">
-            <span className="text-white text-sm font-medium">bg-accent</span>
-          </div>
-          <div className="flex-1 rounded-lg bg-surface border border-border flex items-center justify-center py-4">
-            <span className="text-error text-sm font-medium">text-error</span>
-          </div>
-        </div>
-        <div className="flex gap-3">
-          <div className="flex-1 rounded-lg bg-surface border border-border flex items-center justify-center py-4">
-            <span className="text-success text-sm font-medium">text-success</span>
-          </div>
-          <div className="flex-1 rounded-lg bg-muted/20 border border-border flex items-center justify-center py-4">
-            <span className="text-muted text-sm font-medium">text-muted</span>
-          </div>
-        </div>
-      </div>
-      {/* ── End demo block ── */}
+    <div className="flex flex-col min-h-screen bg-background">
+      <Navbar />
 
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-surface sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-foreground">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-secondary">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-foreground"
+      <main className="flex-1">
+        {/* Hero section */}
+        <Hero />
+
+        {/* Featured Products section */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+          {/* Section header */}
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+            <div>
+              <p className="text-xs font-semibold text-accent uppercase tracking-widest mb-2">
+                Hand-picked for you
+              </p>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">
+                Featured Products
+              </h2>
+            </div>
+            <Link
+              href="/products"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent hover:gap-3 transition-all duration-200 shrink-0"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-foreground"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary px-5 text-primary-foreground transition-colors hover:opacity-90 md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-border px-5 transition-colors hover:bg-border md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+              View all products
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+
+          {/* Responsive product grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {FEATURED_PRODUCTS.map((product) => (
+              <ProductCard key={product.slug} {...product} />
+            ))}
+          </div>
+        </section>
+
+        {/* Value proposition strip */}
+        <section className="bg-surface border-y border-border py-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-3xl font-extrabold text-accent">10K+</span>
+                <span className="text-sm text-secondary font-medium">Happy Customers</span>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-3xl font-extrabold text-accent">500+</span>
+                <span className="text-sm text-secondary font-medium">Products Available</span>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-3xl font-extrabold text-accent">4.9</span>
+                <span className="text-sm text-secondary font-medium">Average Rating</span>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
+
+      <Footer />
     </div>
   );
 }

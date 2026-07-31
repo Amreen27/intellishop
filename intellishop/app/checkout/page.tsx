@@ -33,6 +33,7 @@ import {
   XCircle,
   AlertTriangle,
   RefreshCw,
+  AlertCircle,
 } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -89,6 +90,8 @@ interface FormValues {
   pincode: string;
 }
 
+type FormErrors = Partial<Record<keyof FormValues, string>>;
+
 type CheckoutStep =
   | "idle"
   | "creating-order"
@@ -139,6 +142,7 @@ export default function CheckoutPage() {
 
   const [step, setStep] = useState<CheckoutStep>("idle");
   const [verifyErrorMsg, setVerifyErrorMsg] = useState<string | null>(null);
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const [form, setForm] = useState<FormValues>({
     name: user?.displayName ?? "",
@@ -159,6 +163,27 @@ export default function CheckoutPage() {
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    // Clear the error for this field as the user types
+    if (errors[name as keyof FormValues]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
+  }
+
+  // ── Validation ──────────────────────────────────────────────────────────
+
+  function validate(): FormErrors {
+    const errs: FormErrors = {};
+    if (!form.name.trim())    errs.name    = "Full name is required.";
+    if (!form.email.trim())   errs.email   = "Email address is required.";
+    else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email))
+                              errs.email   = "Enter a valid email address.";
+    if (!form.phone.trim())   errs.phone   = "Phone number is required.";
+    if (!form.address.trim()) errs.address = "Street address is required.";
+    if (!form.city.trim())    errs.city    = "City is required.";
+    if (!form.pincode.trim()) errs.pincode = "Postal code is required.";
+    else if (!/^\d{4,10}$/.test(form.pincode.trim()))
+                              errs.pincode = "Enter a valid postal code (digits only).";
+    return errs;
   }
 
   // ── Reopen the same Razorpay popup (used by "Retry Payment" button) ─────
@@ -177,6 +202,16 @@ export default function CheckoutPage() {
     e.preventDefault();
     setVerifyErrorMsg(null);
 
+    // ── Client-side validation ───────────────────────────────────────────
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      // Scroll the first errored field into view
+      const firstKey = Object.keys(validationErrors)[0] as keyof FormValues;
+      document.getElementById(`checkout-${firstKey}`)?.focus();
+      return;
+    }
+
     if (items.length === 0) {
       setVerifyErrorMsg("Your cart is empty.");
       return;
@@ -190,20 +225,20 @@ export default function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: user?.uid ?? null,
+          user_id: user?.uid ?? "",
           items: items.map((i) => ({
             product_id: i.product_id,
-            quantity: i.quantity,
-            unit_price: i.price,
+            quantity:   i.quantity,
+            price:      i.price,
+            name:       i.name,
           })),
-          total: subtotal,
-          billing: {
-            name: form.name,
-            email: form.email,
-            phone: form.phone,
-            address: form.address,
-            city: form.city,
-            pincode: form.pincode,
+          shipping_details: {
+            full_name:     form.name,
+            address_line1: form.address,
+            city:          form.city,
+            postal_code:   form.pincode,
+            country:       "IN",
+            phone:         form.phone,
           },
         }),
       });
@@ -213,7 +248,7 @@ export default function CheckoutPage() {
         throw new Error(orderJson.error ?? "Failed to create order");
       }
 
-      const internalOrderId: string = orderJson.id ?? orderJson.data?.id;
+      const internalOrderId: string = orderJson.data?.order_id ?? orderJson.id;
       internalOrderIdRef.current = internalOrderId;
 
       // ── Step 2: Create Razorpay order ────────────────────────────────────
@@ -519,57 +554,74 @@ export default function CheckoutPage() {
 
               <form id="checkout-form" onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
                 {/* Name */}
-                <Field id="checkout-name" label="Full Name" required>
+                <Field id="checkout-name" label="Full Name" required error={errors.name}>
                   <input
                     id="checkout-name" name="name" type="text" autoComplete="name"
-                    required value={form.name} onChange={handleChange}
-                    placeholder="Jane Smith" className={inputCls}
+                    value={form.name} onChange={handleChange}
+                    placeholder="Jane Smith"
+                    aria-describedby={errors.name ? "checkout-name-error" : undefined}
+                    aria-invalid={!!errors.name}
+                    className={errors.name ? inputErrCls : inputCls}
                   />
                 </Field>
 
                 {/* Email */}
-                <Field id="checkout-email" label="Email Address" required>
+                <Field id="checkout-email" label="Email Address" required error={errors.email}>
                   <input
                     id="checkout-email" name="email" type="email" autoComplete="email"
-                    required value={form.email} onChange={handleChange}
-                    placeholder="jane@example.com" className={inputCls}
+                    value={form.email} onChange={handleChange}
+                    placeholder="jane@example.com"
+                    aria-describedby={errors.email ? "checkout-email-error" : undefined}
+                    aria-invalid={!!errors.email}
+                    className={errors.email ? inputErrCls : inputCls}
                   />
                 </Field>
 
                 {/* Phone */}
-                <Field id="checkout-phone" label="Phone Number" required>
+                <Field id="checkout-phone" label="Phone Number" required error={errors.phone}>
                   <input
                     id="checkout-phone" name="phone" type="tel" autoComplete="tel"
-                    required value={form.phone} onChange={handleChange}
-                    placeholder="+91 98765 43210" className={inputCls}
+                    value={form.phone} onChange={handleChange}
+                    placeholder="+91 98765 43210"
+                    aria-describedby={errors.phone ? "checkout-phone-error" : undefined}
+                    aria-invalid={!!errors.phone}
+                    className={errors.phone ? inputErrCls : inputCls}
                   />
                 </Field>
 
                 {/* Address */}
-                <Field id="checkout-address" label="Street Address" required>
+                <Field id="checkout-address" label="Street Address" required error={errors.address}>
                   <textarea
                     id="checkout-address" name="address" autoComplete="street-address"
-                    required rows={3} value={form.address} onChange={handleChange}
+                    rows={3} value={form.address} onChange={handleChange}
                     placeholder="123, Main Street, Apt 4B"
-                    className={`${inputCls} resize-none`}
+                    aria-describedby={errors.address ? "checkout-address-error" : undefined}
+                    aria-invalid={!!errors.address}
+                    className={`${errors.address ? inputErrCls : inputCls} resize-none`}
                   />
                 </Field>
 
                 {/* City + Pincode */}
                 <div className="grid grid-cols-2 gap-4">
-                  <Field id="checkout-city" label="City" required>
+                  <Field id="checkout-city" label="City" required error={errors.city}>
                     <input
                       id="checkout-city" name="city" type="text" autoComplete="address-level2"
-                      required value={form.city} onChange={handleChange}
-                      placeholder="Mumbai" className={inputCls}
+                      value={form.city} onChange={handleChange}
+                      placeholder="Mumbai"
+                      aria-describedby={errors.city ? "checkout-city-error" : undefined}
+                      aria-invalid={!!errors.city}
+                      className={errors.city ? inputErrCls : inputCls}
                     />
                   </Field>
-                  <Field id="checkout-pincode" label="Pincode" required>
+                  <Field id="checkout-pincode" label="Pincode" required error={errors.pincode}>
                     <input
                       id="checkout-pincode" name="pincode" type="text" autoComplete="postal-code"
-                      required inputMode="numeric" maxLength={6}
+                      inputMode="numeric" maxLength={10}
                       value={form.pincode} onChange={handleChange}
-                      placeholder="400001" className={inputCls}
+                      placeholder="400001"
+                      aria-describedby={errors.pincode ? "checkout-pincode-error" : undefined}
+                      aria-invalid={!!errors.pincode}
+                      className={errors.pincode ? inputErrCls : inputCls}
                     />
                   </Field>
                 </div>
@@ -693,15 +745,24 @@ const inputCls = `
   focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20
 `;
 
+const inputErrCls = `
+  w-full rounded-xl border border-error bg-surface px-4 py-3
+  text-sm text-foreground placeholder:text-muted
+  transition-colors duration-150
+  focus:border-error focus:outline-none focus:ring-2 focus:ring-error/20
+`;
+
 function Field({
   id,
   label,
   required,
+  error,
   children,
 }: {
   id: string;
   label: string;
   required?: boolean;
+  error?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -716,6 +777,16 @@ function Field({
         )}
       </label>
       {children}
+      {error && (
+        <p
+          id={`${id}-error`}
+          role="alert"
+          className="flex items-center gap-1.5 text-xs font-medium text-error"
+        >
+          <AlertCircle size={13} className="flex-shrink-0" aria-hidden="true" />
+          {error}
+        </p>
+      )}
     </div>
   );
 }

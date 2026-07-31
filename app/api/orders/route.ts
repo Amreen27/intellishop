@@ -157,14 +157,11 @@ export async function POST(req: NextRequest) {
         total_amount:     Math.round(total_amount * 100) / 100, // 2 dp
         // Shipping fields — store as individual columns; the table may also
         // accept a shipping_details JSONB column depending on the schema.
-        shipping_full_name:    sd.full_name,
-        shipping_address_line1: sd.address_line1,
-        shipping_address_line2: sd.address_line2 ?? null,
-        shipping_city:         sd.city,
-        shipping_state:        sd.state ?? null,
-        shipping_postal_code:  sd.postal_code,
-        shipping_country:      sd.country,
-        shipping_phone:        sd.phone ?? null,
+        shipping_name:        sd.full_name,
+        shipping_address:     sd.address_line1 + (sd.address_line2 ? ", " + sd.address_line2 : ""),
+        shipping_city:        sd.city,
+        shipping_postal_code: sd.postal_code,
+        shipping_phone:       sd.phone ?? "",
       })
       .select("id")
       .single();
@@ -181,10 +178,7 @@ export async function POST(req: NextRequest) {
       order_id:   orderId,
       product_id: item.product_id,
       quantity:   item.quantity,
-      unit_price: item.price,
-      // total_price per line for convenience
-      total_price: Math.round(item.price * item.quantity * 100) / 100,
-      ...(item.name ? { name: item.name } : {}),
+      price:      item.price,
     }));
 
     const { error: itemsError } = await supabase

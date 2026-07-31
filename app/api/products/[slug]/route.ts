@@ -39,7 +39,7 @@ async function getProductBySlug(slug: string): Promise<Product | null> {
   const supabase = getClient();
   const { data, error } = await supabase
     .from("products")
-    .select("*")
+    .select("id, slug, name, description, price, category, image_url, stock")
     .eq("slug", slug)
     .single();
 
@@ -48,7 +48,22 @@ async function getProductBySlug(slug: string): Promise<Product | null> {
     throw new Error(error.message);
   }
 
-  return data ?? null;
+  if (!data) return null;
+
+  // Map DB snake_case columns → camelCase Product shape
+  return {
+    id:          data.id,
+    slug:        data.slug,
+    name:        data.name,
+    description: data.description,
+    price:       Number(data.price),
+    category:    data.category,
+    imageUrl:    data.image_url ?? "",
+    inStock:     (data.stock ?? 0) > 0,
+    // rating & reviewCount are not in the DB yet — use sensible defaults
+    rating:      4.5,
+    reviewCount: 128,
+  };
 }
 
 // ---------------------------------------------------------------------------

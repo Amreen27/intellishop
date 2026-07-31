@@ -1,17 +1,70 @@
 "use client";
 
 import { useState } from "react";
-import { Minus, Plus, ShoppingCart } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Check, LogIn } from "lucide-react";
+import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { signInWithGoogle } from "@/lib/firebase";
 
 interface ProductActionsProps {
+  productId:   string;
   productName: string;
+  price:       number;
+  imageUrl?:   string;
 }
 
-export default function ProductActions({ productName }: ProductActionsProps) {
+export default function ProductActions({
+  productId,
+  productName,
+  price,
+  imageUrl,
+}: ProductActionsProps) {
+  const { addToCart, openCart } = useCart();
+  const { user }                 = useAuth();
+
   const [quantity, setQuantity] = useState(1);
+  const [status,   setStatus]   = useState<"idle" | "loading" | "added" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
 
   const decrement = () => setQuantity((q) => Math.max(1, q - 1));
   const increment = () => setQuantity((q) => Math.min(99, q + 1));
+
+  async function handleAddToCart() {
+    // Not signed in → prompt sign-in
+    if (!user) {
+      try {
+        await signInWithGoogle();
+      } catch {
+        setErrorMsg("Sign-in was cancelled. Please try again.");
+        setStatus("error");
+        setTimeout(() => setStatus("idle"), 3000);
+      }
+      return;
+    }
+
+    setStatus("loading");
+    setErrorMsg("");
+
+    try {
+      await addToCart(productId, quantity, {
+        name:  productName,
+        price,
+        image: imageUrl,
+      });
+      setStatus("added");
+      openCart();                          // slide open the cart drawer
+      setTimeout(() => setStatus("idle"), 2500);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to add to cart.";
+      setErrorMsg(
+        msg === "NOT_SIGNED_IN"
+          ? "Please sign in to add items to your cart."
+          : msg
+      );
+      setStatus("error");
+      setTimeout(() => setStatus("idle"), 3000);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -23,13 +76,11 @@ export default function ProductActions({ productName }: ProductActionsProps) {
             id="qty-decrement"
             aria-label="Decrease quantity"
             onClick={decrement}
-            disabled={quantity <= 1}
+            disabled={quantity <= 1 || status === "loading"}
             className="
               flex h-11 w-11 items-center justify-center
-              text-foreground
-              transition-colors duration-150
-              hover:bg-border
-              disabled:cursor-not-allowed disabled:text-muted
+              text-foreground transition-colors duration-150
+              hover:bg-border disabled:cursor-not-allowed disabled:text-muted
             "
           >
             <Minus size={16} strokeWidth={2.5} />
@@ -47,13 +98,11 @@ export default function ProductActions({ productName }: ProductActionsProps) {
             id="qty-increment"
             aria-label="Increase quantity"
             onClick={increment}
-            disabled={quantity >= 99}
+            disabled={quantity >= 99 || status === "loading"}
             className="
               flex h-11 w-11 items-center justify-center
-              text-foreground
-              transition-colors duration-150
-              hover:bg-border
-              disabled:cursor-not-allowed disabled:text-muted
+              text-foreground transition-colors duration-150
+              hover:bg-border disabled:cursor-not-allowed disabled:text-muted
             "
           >
             <Plus size={16} strokeWidth={2.5} />
@@ -61,11 +110,17 @@ export default function ProductActions({ productName }: ProductActionsProps) {
         </div>
       </div>
 
-      {/* Add to Cart */}
+      {/* Add to Cart button */}
       <button
         id="add-to-cart"
         type="button"
-        aria-label={`Add ${quantity} × ${productName} to cart`}
+        onClick={handleAddToCart}
+        disabled={status === "loading" || status === "added"}
+        aria-label={
+          !user
+            ? "Sign in to add to cart"
+            : `Add ${quantity} × ${productName} to cart`
+        }
         className="
           group flex w-full items-center justify-center gap-3
           rounded-2xl bg-accent px-8 py-4
@@ -75,14 +130,35 @@ export default function ProductActions({ productName }: ProductActionsProps) {
           hover:brightness-110 hover:shadow-xl hover:shadow-accent/35 hover:-translate-y-0.5
           focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent
           active:translate-y-0
+          disabled:cursor-not-allowed disabled:opacity-70
         "
       >
-        <ShoppingCart
-          size={20}
-          className="transition-transform duration-200 group-hover:scale-110"
-        />
-        Add to Cart
+        {/* Icon */}
+        {status === "loading" && (
+          <span className="h-5 w-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+        )}
+        {status === "added"            && <Check size={20} />}
+        {status === "idle" && !user    && <LogIn size={20} />}
+        {(status === "idle" && user) || status === "error" ? (
+          <ShoppingCart
+            size={20}
+            className="transition-transform duration-200 group-hover:scale-110"
+          />
+        ) : null}
+
+        {/* Label */}
+        {status === "loading" && "Adding…"}
+        {status === "added"   && "Added to Cart!"}
+        {status === "error"   && "Add to Cart"}
+        {status === "idle"    && (!user ? "Sign in to Add" : "Add to Cart")}
       </button>
+
+      {/* Inline error */}
+      {status === "error" && errorMsg && (
+        <p role="alert" className="text-sm text-error text-center">
+          {errorMsg}
+        </p>
+      )}
     </div>
   );
 }

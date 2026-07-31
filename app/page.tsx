@@ -1,7 +1,5 @@
-import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import ProductCard from "@/components/ProductCard";
-import Footer from "@/components/Footer";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
@@ -78,64 +76,58 @@ const FEATURED_PRODUCTS = [
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <Navbar />
+    <>
+      {/* Hero section */}
+      <Hero />
 
-      <main className="flex-1">
-        {/* Hero section */}
-        <Hero />
+      {/* Featured Products section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+        {/* Section header */}
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+          <div>
+            <p className="text-xs font-semibold text-accent uppercase tracking-widest mb-2">
+              Hand-picked for you
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">
+              Featured Products
+            </h2>
+          </div>
+          <Link
+            href="/products"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent hover:gap-3 transition-all duration-200 shrink-0"
+          >
+            View all products
+            <ArrowRight size={16} />
+          </Link>
+        </div>
 
-        {/* Featured Products section */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-          {/* Section header */}
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
-            <div>
-              <p className="text-xs font-semibold text-accent uppercase tracking-widest mb-2">
-                Hand-picked for you
-              </p>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">
-                Featured Products
-              </h2>
+        {/* Responsive product grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {FEATURED_PRODUCTS.map((product) => (
+            <ProductCard key={product.slug} {...product} />
+          ))}
+        </div>
+      </section>
+
+      {/* Value proposition strip */}
+      <section className="bg-surface border-y border-border py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-3xl font-extrabold text-accent">10K+</span>
+              <span className="text-sm text-secondary font-medium">Happy Customers</span>
             </div>
-            <Link
-              href="/products"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent hover:gap-3 transition-all duration-200 shrink-0"
-            >
-              View all products
-              <ArrowRight size={16} />
-            </Link>
-          </div>
-
-          {/* Responsive product grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {FEATURED_PRODUCTS.map((product) => (
-              <ProductCard key={product.slug} {...product} />
-            ))}
-          </div>
-        </section>
-
-        {/* Value proposition strip */}
-        <section className="bg-surface border-y border-border py-10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
-              <div className="flex flex-col items-center gap-2">
-                <span className="text-3xl font-extrabold text-accent">10K+</span>
-                <span className="text-sm text-secondary font-medium">Happy Customers</span>
-              </div>
-              <div className="flex flex-col items-center gap-2">
-                <span className="text-3xl font-extrabold text-accent">500+</span>
-                <span className="text-sm text-secondary font-medium">Products Available</span>
-              </div>
-              <div className="flex flex-col items-center gap-2">
-                <span className="text-3xl font-extrabold text-accent">4.9</span>
-                <span className="text-sm text-secondary font-medium">Average Rating</span>
-              </div>
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-3xl font-extrabold text-accent">500+</span>
+              <span className="text-sm text-secondary font-medium">Products Available</span>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-3xl font-extrabold text-accent">4.9</span>
+              <span className="text-sm text-secondary font-medium">Average Rating</span>
             </div>
           </div>
-        </section>
-      </main>
-
-      <Footer />
-    </div>
+        </div>
+      </section>
+    </>
   );
 }

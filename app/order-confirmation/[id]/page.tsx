@@ -21,17 +21,14 @@ import {
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface OrderRow {
-  id:                    string;
-  status:                string;
-  total_amount:          number;
-  created_at:            string;
-  shipping_full_name:    string;
-  shipping_address_line1: string;
-  shipping_address_line2?: string | null;
-  shipping_city:         string;
-  shipping_state?:       string | null;
-  shipping_postal_code:  string;
-  shipping_country:      string;
+  id:                   string;
+  status:               string;
+  total_amount:         number;
+  created_at:           string;
+  shipping_name:        string;
+  shipping_address:     string;
+  shipping_city:        string;
+  shipping_postal_code: string;
 }
 
 async function fetchOrder(id: string): Promise<OrderRow | null> {
@@ -54,8 +51,7 @@ async function fetchOrder(id: string): Promise<OrderRow | null> {
       .from("orders")
       .select(
         "id, status, total_amount, created_at, " +
-        "shipping_full_name, shipping_address_line1, shipping_address_line2, " +
-        "shipping_city, shipping_state, shipping_postal_code, shipping_country"
+        "shipping_name, shipping_address, shipping_city, shipping_postal_code"
       )
       .eq("id", id)
       .single();
@@ -157,11 +153,10 @@ export default async function OrderConfirmationPage({
 
   const shippingLine2 = [
     order.shipping_city,
-    order.shipping_state,
     order.shipping_postal_code,
   ]
     .filter(Boolean)
-    .join(", ");
+    .join(" - ");
 
   return (
     <div className="min-h-screen bg-background">
@@ -234,23 +229,11 @@ export default async function OrderConfirmationPage({
               Shipping Address
             </p>
             <address className="not-italic text-sm text-foreground leading-relaxed">
-              <span className="font-semibold">{order.shipping_full_name}</span>
+              <span className="font-semibold">{order.shipping_name}</span>
               <br />
-              {order.shipping_address_line1}
-              {order.shipping_address_line2 && (
-                <>
-                  <br />
-                  {order.shipping_address_line2}
-                </>
-              )}
+              {order.shipping_address}
               <br />
               {shippingLine2}
-              {order.shipping_country && (
-                <>
-                  <br />
-                  {order.shipping_country}
-                </>
-              )}
             </address>
           </div>
         </div>

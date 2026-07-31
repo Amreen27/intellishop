@@ -89,15 +89,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // ── Helpers ──────────────────────────────────────────────────────────────
 
   /** Merge API row with local meta cache */
-  function enrichItem(row: { id: string; product_id: string; quantity: number }): CartItem {
+  function enrichItem(row: {
+    id:          string;
+    product_id:  string;
+    quantity:    number;
+    name?:       string;
+    price?:      number;
+    image_url?:  string;
+  }): CartItem {
     const meta = metaCache.current[row.product_id];
     return {
       id:         row.id,
       product_id: row.product_id,
       quantity:   row.quantity,
-      name:       meta?.name  ?? row.product_id,
-      price:      meta?.price ?? 0,
-      image:      meta?.image,
+      name:       row.name ?? meta?.name  ?? row.product_id,
+      price:      row.price ?? meta?.price ?? 0,
+      image:      row.image_url ?? meta?.image,
     };
   }
 

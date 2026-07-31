@@ -256,9 +256,7 @@ export default function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: subtotal,
-          currency: "INR",
-          receipt: internalOrderId,
+          order_id: internalOrderId,
         }),
       });
 
@@ -296,7 +294,7 @@ export default function CheckoutPage() {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                razorpay_order_id:  response.razorpay_order_id,
+                razorpay_order_id:  response.razorpay_order_id || razorpayOrderId,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature:  response.razorpay_signature,
                 internal_order_id:   internalOrderIdRef.current,

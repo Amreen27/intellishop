@@ -3,10 +3,11 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCart, Menu, X, LogIn, LogOut, ChevronDown } from "lucide-react";
+import { ShoppingCart, Menu, X, LogIn, LogOut, ChevronDown, Shield } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { signInWithGoogle, signOutUser } from "@/lib/firebaseClient";
+import { isAdmin } from "@/lib/isAdmin";
 import CartDrawer from "./CartDrawer";
 
 export default function Navbar() {
@@ -56,7 +57,7 @@ export default function Navbar() {
             {/* Logo / Store Name */}
             <div className="flex-shrink-0">
               <Link
-                href="#"
+                href="/"
                 className="text-xl font-extrabold tracking-tight text-foreground transition-opacity hover:opacity-90"
               >
                 IntelliShop
@@ -66,17 +67,26 @@ export default function Navbar() {
             {/* Desktop Navigation Links */}
             <nav className="hidden md:flex items-center justify-center space-x-8">
               <Link
-                href="#"
+                href="/"
                 className="text-sm font-medium text-foreground transition-colors hover:text-foreground/80"
               >
                 Home
               </Link>
               <Link
-                href="#"
+                href="/products"
                 className="text-sm font-medium text-muted transition-colors hover:text-foreground"
               >
                 Products
               </Link>
+              {user && isAdmin(user.email) && (
+                <Link
+                  href="/admin"
+                  className="text-sm font-medium text-gray-500 dark:text-gray-400 transition-colors hover:text-foreground inline-flex items-center gap-1.5"
+                >
+                  <Shield size={14} />
+                  Admin
+                </Link>
+              )}
             </nav>
 
             {/* Action Items (Auth, Cart & Hamburger) */}
@@ -209,19 +219,29 @@ export default function Navbar() {
           <div className="md:hidden" id="mobile-menu">
             <div className="space-y-1 px-4 pt-2 pb-4 border-t border-border bg-background">
               <Link
-                href="#"
+                href="/"
                 className="block rounded-md px-3 py-2 text-base font-medium text-foreground bg-border"
                 onClick={() => setIsOpen(false)}
               >
                 Home
               </Link>
               <Link
-                href="#"
+                href="/products"
                 className="block rounded-md px-3 py-2 text-base font-medium text-muted hover:text-foreground hover:bg-border"
                 onClick={() => setIsOpen(false)}
               >
                 Products
               </Link>
+              {user && isAdmin(user.email) && (
+                <Link
+                  href="/admin"
+                  className="block rounded-md px-3 py-2 text-base font-medium text-gray-500 dark:text-gray-400 hover:text-foreground hover:bg-gray-50 dark:hover:bg-gray-900 flex items-center gap-1.5"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Shield size={16} />
+                  Admin
+                </Link>
+              )}
             </div>
           </div>
         )}

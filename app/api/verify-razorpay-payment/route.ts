@@ -97,6 +97,15 @@ export async function POST(req: NextRequest) {
       .update(payload)
       .digest("hex");
 
+    console.log("[verify-razorpay-payment] DEBUG DETAILS:", {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      payload,
+      expectedSignature: expected,
+      keySecretUsed: keySecret ? `${keySecret.substring(0, 4)}...` : "not_set"
+    });
+
     // Use timing-safe comparison to prevent timing attacks
     const expectedBuf = Buffer.from(expected,            "hex");
     const receivedBuf = Buffer.from(razorpay_signature,  "hex");

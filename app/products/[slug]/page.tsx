@@ -210,7 +210,12 @@ export default async function ProductDetailPage({
 
             {/* Qty + Add to Cart — client island */}
             {product.inStock ? (
-              <ProductActions productName={product.name} />
+              <ProductActions
+                productId={product.id}
+                productName={product.name}
+                price={product.price}
+                imageUrl={product.imageUrl}
+              />
             ) : (
               <button
                 disabled

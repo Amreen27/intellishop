@@ -50,13 +50,36 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await supabase
       .from("cart_items")
-      .select("*")
+      .select(`
+        id,
+        user_id,
+        product_id,
+        quantity,
+        created_at,
+        products (
+          name,
+          price,
+          image_url
+        )
+      `)
       .eq("user_id", user_id)
       .order("created_at", { ascending: true });
 
     if (error) return fail(error.message, 500, error);
 
-    return ok(data);
+    // Format output to match client requirements
+    const enrichedData = (data ?? []).map((row: any) => ({
+      id: row.id,
+      user_id: row.user_id,
+      product_id: row.product_id,
+      quantity: row.quantity,
+      created_at: row.created_at,
+      name: row.products?.name ?? "Unknown Product",
+      price: Number(row.products?.price ?? 0),
+      image_url: row.products?.image_url ?? ""
+    }));
+
+    return ok(enrichedData);
   } catch (err) {
     return fail(String(err), 500);
   }

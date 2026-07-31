@@ -286,7 +286,7 @@ export default function CheckoutPage() {
           email: form.email,
           contact: form.phone,
         },
-        theme: { color: "#2563eb" },
+        theme: { color: "var(--color-accent)" },
 
         // ── On payment success → verify ───────────────────────────────────
         handler: async (response: RazorpayResponse) => {
@@ -442,8 +442,8 @@ export default function CheckoutPage() {
       {step === "payment-incomplete" && (
         <div className="flex min-h-screen flex-col items-center justify-center px-4">
           <div className="flex w-full max-w-md flex-col items-center gap-6 rounded-2xl border border-border bg-surface p-10 shadow-lg text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-50">
-              <AlertTriangle size={36} className="text-amber-500" aria-hidden="true" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted/20">
+              <AlertTriangle size={36} className="text-secondary" aria-hidden="true" />
             </div>
             <div>
               <h2 className="text-xl font-bold text-foreground">Payment Not Completed</h2>

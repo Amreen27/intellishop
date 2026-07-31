@@ -44,7 +44,7 @@ export default function Hero() {
         <div className="mt-10 flex flex-col sm:flex-row gap-4">
           <Link
             href="/products"
-            className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-full bg-accent text-white font-semibold text-sm hover:opacity-90 active:scale-95 transition-all duration-200"
+            className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-full bg-accent text-primary-foreground font-semibold text-sm hover:opacity-90 active:scale-95 transition-all duration-200"
           >
             Shop Now
             <ArrowRight size={16} />

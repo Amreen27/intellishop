@@ -50,7 +50,7 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b border-gray-200/80 dark:border-gray-800/80 bg-background/80 backdrop-blur-md transition-colors duration-300">
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md transition-colors duration-300">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Logo / Store Name */}
@@ -73,7 +73,7 @@ export default function Navbar() {
               </Link>
               <Link
                 href="#"
-                className="text-sm font-medium text-gray-500 dark:text-gray-400 transition-colors hover:text-foreground"
+                className="text-sm font-medium text-muted transition-colors hover:text-foreground"
               >
                 Products
               </Link>
@@ -85,7 +85,7 @@ export default function Navbar() {
               {/* ── Auth Section ── */}
               {loading ? (
                 /* Skeleton while Firebase resolves the persisted session */
-                <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                <div className="h-8 w-8 rounded-full bg-border animate-pulse" />
               ) : user ? (
                 /* ── Signed-in: avatar + dropdown ── */
                 <div className="relative" ref={dropdownRef}>
@@ -95,7 +95,7 @@ export default function Navbar() {
                     onClick={() => setDropdownOpen((o) => !o)}
                     aria-expanded={dropdownOpen}
                     aria-haspopup="true"
-                    className="flex items-center gap-2 rounded-full pl-1 pr-2 py-1 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    className="flex items-center gap-2 rounded-full pl-1 pr-2 py-1 transition-colors hover:bg-border focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   >
                     {user.photoURL ? (
                       <Image
@@ -107,7 +107,7 @@ export default function Navbar() {
                         referrerPolicy="no-referrer"
                       />
                     ) : (
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-white text-sm font-bold">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-primary-foreground text-sm font-bold">
                         {(user.displayName ?? user.email ?? "U")[0].toUpperCase()}
                       </span>
                     )}
@@ -115,7 +115,7 @@ export default function Navbar() {
                       {user.displayName ?? user.email}
                     </span>
                     <ChevronDown
-                      className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
+                      className={`h-4 w-4 text-muted transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
                       aria-hidden="true"
                     />
                   </button>
@@ -126,16 +126,16 @@ export default function Navbar() {
                       id="navbar-user-dropdown"
                       role="menu"
                       aria-orientation="vertical"
-                      className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg ring-1 ring-black/5 focus:outline-none animate-in fade-in slide-in-from-top-1 duration-150"
+                      className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl border border-border bg-surface shadow-lg ring-1 ring-border focus:outline-none animate-in fade-in slide-in-from-top-1 duration-150"
                     >
                       {/* User info header */}
-                      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">Signed in as</p>
+                      <div className="px-4 py-3 border-b border-border">
+                        <p className="text-xs text-muted truncate">Signed in as</p>
                         <p className="text-sm font-semibold text-foreground truncate">
                           {user.displayName ?? "User"}
                         </p>
                         {user.email && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                          <p className="text-xs text-muted truncate">{user.email}</p>
                         )}
                       </div>
 
@@ -146,7 +146,7 @@ export default function Navbar() {
                           role="menuitem"
                           type="button"
                           onClick={handleSignOut}
-                          className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                          className="flex w-full items-center gap-2 px-4 py-2 text-sm text-error hover:bg-error/10 transition-colors"
                         >
                           <LogOut className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                           Sign out
@@ -162,7 +162,7 @@ export default function Navbar() {
                   type="button"
                   onClick={handleSignIn}
                   disabled={authLoading}
-                  className="flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm font-medium text-foreground shadow-sm transition-all hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground shadow-sm transition-all hover:bg-border disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   <LogIn className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                   {authLoading ? "Signing in…" : "Sign in with Google"}
@@ -175,11 +175,11 @@ export default function Navbar() {
                 type="button"
                 onClick={openCart}
                 aria-label={`Shopping Cart (${itemCount} items)`}
-                className="relative rounded-full p-2 text-foreground transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="relative rounded-full p-2 text-foreground transition-colors hover:bg-border"
               >
                 <ShoppingCart className="h-6 w-6" />
                 {itemCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-white shadow-sm ring-2 ring-background">
+                  <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-primary-foreground shadow-sm ring-2 ring-background">
                     {itemCount > 99 ? "99+" : itemCount}
                   </span>
                 )}
@@ -189,7 +189,7 @@ export default function Navbar() {
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 type="button"
-                className="inline-flex items-center justify-center rounded-md p-2 text-foreground transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none md:hidden"
+                className="inline-flex items-center justify-center rounded-md p-2 text-foreground transition-colors hover:bg-border focus:outline-none md:hidden"
                 aria-controls="mobile-menu"
                 aria-expanded={isOpen}
               >
@@ -207,17 +207,17 @@ export default function Navbar() {
         {/* Mobile Navigation Drawer */}
         {isOpen && (
           <div className="md:hidden" id="mobile-menu">
-            <div className="space-y-1 px-4 pt-2 pb-4 border-t border-gray-200/80 dark:border-gray-800/80 bg-background">
+            <div className="space-y-1 px-4 pt-2 pb-4 border-t border-border bg-background">
               <Link
                 href="#"
-                className="block rounded-md px-3 py-2 text-base font-medium text-foreground bg-gray-50 dark:bg-gray-900"
+                className="block rounded-md px-3 py-2 text-base font-medium text-foreground bg-border"
                 onClick={() => setIsOpen(false)}
               >
                 Home
               </Link>
               <Link
                 href="#"
-                className="block rounded-md px-3 py-2 text-base font-medium text-gray-500 dark:text-gray-400 hover:text-foreground hover:bg-gray-50 dark:hover:bg-gray-900"
+                className="block rounded-md px-3 py-2 text-base font-medium text-muted hover:text-foreground hover:bg-border"
                 onClick={() => setIsOpen(false)}
               >
                 Products

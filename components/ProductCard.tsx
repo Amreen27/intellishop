@@ -33,7 +33,7 @@ export default function ProductCard({
     <article className="group relative flex flex-col bg-surface rounded-2xl border border-border overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
       {/* Badge */}
       {badge && (
-        <span className="absolute top-3 left-3 z-10 px-2 py-0.5 rounded-full bg-accent text-white text-xs font-semibold">
+        <span className="absolute top-3 left-3 z-10 px-2 py-0.5 rounded-full bg-accent text-primary-foreground text-xs font-semibold">
           {badge}
         </span>
       )}
@@ -59,7 +59,7 @@ export default function ProductCard({
                 <Star
                   key={i}
                   size={12}
-                  className={i < stars ? "text-yellow-400 fill-yellow-400" : "text-border fill-border"}
+                  className={i < stars ? "text-accent fill-accent" : "text-border fill-border"}
                 />
               ))}
             </div>

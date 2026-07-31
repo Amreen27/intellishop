@@ -83,7 +83,7 @@ function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
     pending: {
       label: "Pending",
-      cls:   "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+      cls:   "bg-muted/20 text-secondary",
     },
     paid: {
       label: "Paid",
@@ -143,7 +143,7 @@ export default async function OrderConfirmationPage({
           </div>
           <Link
             href="/"
-            className="flex items-center gap-2 rounded-full bg-accent px-6 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            className="flex items-center gap-2 rounded-full bg-accent px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
           >
             <Home className="h-4 w-4" aria-hidden="true" />
             Back to Home
@@ -282,7 +282,7 @@ export default async function OrderConfirmationPage({
           <Link
             href="/products"
             id="confirmation-continue-shopping"
-            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white shadow-md transition-opacity hover:opacity-90"
+            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-primary-foreground shadow-md transition-opacity hover:opacity-90"
           >
             Continue Shopping
             <ArrowRight className="h-4 w-4" aria-hidden="true" />

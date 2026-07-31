@@ -82,7 +82,7 @@ export default function Footer() {
                   key={label}
                   href={href}
                   aria-label={label}
-                  className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-accent transition-colors duration-200"
+                  className="w-9 h-9 rounded-lg bg-primary-foreground/10 flex items-center justify-center hover:bg-accent transition-colors duration-200"
                 >
                   <Icon className="w-4 h-4" />
                 </a>
@@ -123,11 +123,11 @@ export default function Footer() {
               <input
                 type="email"
                 placeholder="you@example.com"
-                className="flex-1 min-w-0 h-10 rounded-lg bg-white/10 border border-white/20 px-3 text-sm text-primary-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
+                className="flex-1 min-w-0 h-10 rounded-lg bg-primary-foreground/10 border border-primary-foreground/20 px-3 text-sm text-primary-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
               />
               <button
                 type="submit"
-                className="h-10 px-4 rounded-lg bg-accent text-white text-sm font-semibold hover:opacity-90 active:scale-95 transition-all duration-200 shrink-0"
+                className="h-10 px-4 rounded-lg bg-accent text-primary-foreground text-sm font-semibold hover:opacity-90 active:scale-95 transition-all duration-200 shrink-0"
               >
                 Join
               </button>

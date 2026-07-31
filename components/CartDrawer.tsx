@@ -125,7 +125,7 @@ export default function CartDrawer() {
               </div>
               <button
                 onClick={closeCart}
-                className="mt-2 rounded-full bg-accent px-6 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+                className="mt-2 rounded-full bg-accent px-6 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
               >
                 Continue Shopping
               </button>
@@ -225,7 +225,7 @@ export default function CartDrawer() {
               href="/checkout"
               onClick={closeCart}
               id="cart-checkout-btn"
-              className="flex h-11 w-full items-center justify-center rounded-full bg-accent text-sm font-semibold text-white shadow-md transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+              className="flex h-11 w-full items-center justify-center rounded-full bg-accent text-sm font-semibold text-primary-foreground shadow-md transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
             >
               Checkout · ${subtotal.toFixed(2)}
             </Link>

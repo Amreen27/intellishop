@@ -16,7 +16,13 @@
  */
 
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
-import { getAuth, Auth } from "firebase/auth";
+import {
+  getAuth,
+  Auth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+} from "firebase/auth";
 
 const firebaseConfig = {
   apiKey:            process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -38,3 +44,16 @@ if (typeof window !== "undefined") {
 
 export { auth };
 export default app;
+
+/** Sign in with a Google popup. Safe to call only on the client. */
+export async function signInWithGoogle(): Promise<void> {
+  if (!auth) throw new Error("Firebase Auth is not initialised.");
+  const provider = new GoogleAuthProvider();
+  await signInWithPopup(auth, provider);
+}
+
+/** Sign the current user out. */
+export async function signOutUser(): Promise<void> {
+  if (!auth) return;
+  await signOut(auth);
+}
